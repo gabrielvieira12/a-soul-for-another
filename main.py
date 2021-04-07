@@ -17,7 +17,7 @@ pygame.display.set_caption('One soul for another')
 tile_size_largura = 50
 tile_size_altura = 50
 clock = pygame.time.Clock()
-fps = 60
+fps = 30
 scroll = [0,0]
 
 #Load Sounds
@@ -61,8 +61,8 @@ class GameStage():
         janela2.blit(sea_img, (0, 100))
         janela2.blit(far_ground_img, (0, 410))
 
-        olhosvoadores_g.update()
-        olhosvoadores_g.draw(janela)
+
+
 
         key = pygame.key.get_pressed()
         if key[pygame.K_ESCAPE]:
@@ -72,7 +72,8 @@ class GameStage():
                 pygame.quit()
 
         world.__init__(world_data)
-        clock.tick(fps)
+        #olhosvoadores_g.draw(janela)
+        #olhosvoadores_g.update()
         player.update()
 
         #draw_grid()
@@ -92,27 +93,60 @@ class GameStage():
             #pygame.mixer.music.play()
             #pygame.event.wait()'''
 
-
 class Player():
-    def __init__(self,x,y):
+    def __init__(self, x, y):
         self.images_right = []
         self.images_left = []
+
+        self.images_parada_right = []
+        self.images_parada_left = []
+
+        self.images_pulando_right = []
+        self.images_pulando_left = []
+
+        self.images_caindo_right = []
+        self.images_caindo_left = []
+
         self.index = 0
         self.counter = 0
-        kaorip_img = pygame.image.load("Kaoriparada1.png")
-        kaorip_img = pygame.transform.scale(kaorip_img, (87, 100))
-        kaoripleft_img = pygame.transform.flip(kaorip_img, True, False)
-        self.images_right.append(kaorip_img)
-        self.images_left.append(kaoripleft_img)
-        for num in range(1,9):
+
+
+
+        #Parada
+        for num in range(1,12):
+            kaorip_img = pygame.image.load(f"Kaoriparada{num}.png")
+            kaorip_img = pygame.transform.scale(kaorip_img, (87, 100))
+            kaoripleft_img = pygame.transform.flip(kaorip_img, True, False)
+            self.images_parada_right.append(kaorip_img)
+            self.images_parada_left.append(kaoripleft_img)
+
+        #Correndo
+        for num in range(1, 9):
             kaoric_img = pygame.image.load(f"Kaoricorrendo{num}.png")
-            kaoric_img = pygame.transform.scale(kaoric_img,(87,100))
+            kaoric_img = pygame.transform.scale(kaoric_img, (87, 100))
             kaoricleft_img = pygame.transform.flip(kaoric_img, True, False)
             self.images_right.append(kaoric_img)
             self.images_left.append(kaoricleft_img)
-        self.image = self.images_right[self.index]
+
+        #Pulando
+        for num in range(1,4):
+            kaorij_img = pygame.image.load(f"Kaoripulando{num}.png")
+            kaorij_img = pygame.transform.scale(kaorij_img, (87, 100))
+            kaorijleft_img = pygame.transform.flip(kaorij_img, True, False)
+            self.images_pulando_right.append(kaorij_img)
+            self.images_pulando_left.append(kaorijleft_img)
+
+        #Caindo
+        for num in range(1,4):
+            kaorif_img = pygame.image.load(f"Kaoripulando{num}.png")
+            kaorif_img = pygame.transform.scale(kaorif_img, (87, 100))
+            kaorifleft_img = pygame.transform.flip(kaorif_img, True, False)
+            self.images_caindo_right.append(kaorif_img)
+            self.images_caindo_left.append(kaorifleft_img)
+
+        self.image = self.images_parada_right[self.index]
         self.rect = self.image.get_rect()
-        self.rect.x = x 
+        self.rect.x = x
         self.rect.y = y
         self.width = self.image.get_width()
         self.height = self.image.get_height()
@@ -120,18 +154,10 @@ class Player():
         self.jumped = False
         self.direction = 0
 
-    def update(self):
-        dx = 0
-        dy = 0
-        walk_cooldown = 2
+    def Correndo(self,dx):
+        walk_cooldown = 1
 
-        #Movimento Player
         key = pygame.key.get_pressed()
-        if key[pygame.K_SPACE] and self.jumped == False:
-            self.vel_y = -20
-            self.jumped = True
-        if key[pygame.K_SPACE] == False:
-            self.jumped = False
         if key[pygame.K_a]:
             dx -= 7
             self.counter += 1
@@ -152,26 +178,120 @@ class Player():
             self.counter += 1
             self.direction = 1
             scroll[0] -= 10
-        if key[pygame.K_a] == False and key[pygame.K_d] == False and key[pygame.K_RIGHT] == False and key[pygame.K_LEFT] == False:
-            self.counter = 0
-            self.index = 0
-            if self.direction == 1:
-                self.image = self.images_right[self.index]
-            if self.direction == -1:
-                self.image = self.images_left[self.index]
 
-
-
-        #Adicionar Animações
+            # Adicionar Animações
         if self.counter > walk_cooldown:
             self.counter = 0
             self.index += 1
             if self.index >= len(self.images_right):
                 self.index = 1
-            if self.direction == 1 :
+            if self.direction == 1:
                 self.image = self.images_right[self.index]
-            if self.direction == -1 :
+            if self.direction == -1:
                 self.image = self.images_left[self.index]
+
+    def Parada(self,dx):
+        parada_cooldown = 5
+        key = pygame.key.get_pressed()
+        if key[pygame.K_a] == False and key[pygame.K_d] == False and key[pygame.K_RIGHT] == False and key[
+            pygame.K_LEFT] == False:
+            self.counter += 1
+            self.index += 1
+            if self.index >= len(self.images_parada_right):
+                self.index = 0
+            if self.direction == 1:
+                self.image = self.images_parada_right[self.index]
+            if self.direction == -1:
+                self.image = self.images_parada_left[self.index]
+
+
+        # Adicionar Animações
+        if self.counter > parada_cooldown:
+            self.counter = 0
+            self.index += 1
+            if self.index >= len(self.images_parada_right):
+                self.index = 0
+            if self.direction == 1:
+                self.image = self.images_parada_right[self.index]
+            if self.direction == -1:
+                self.image = self.images_parada_left[self.index]
+
+    def Pulando(self):
+        pulando_cooldown = 5
+        key = pygame.key.get_pressed()
+        if key[pygame.K_SPACE] and self.jumped == False:
+            self.counter += 1
+            self.index += 1
+        if self.index >= len(self.images_pulando_right):
+            self.index = 0
+        if self.direction == 1:
+            self.image = self.images_pulando_right[self.index]
+        if self.direction == -1:
+            self.image = self.images_pulando_left[self.index]
+
+        # Adicionar Animações
+        if self.counter > pulando_cooldown:
+            self.counter = 0
+            self.index += 1
+            if self.index >= len(self.images_pulando_right):
+                self.index = 0
+            if self.direction == 1:
+                self.image = self.images_pulando_right[self.index]
+            if self.direction == -1:
+                self.image = self.images_pulando_left[self.index]
+
+    def Caindo(self):
+        caindo_cooldown = 3
+        self.counter += 1
+        self.index += 1
+        if self.index >= len(self.images_caindo_right):
+            self.index = 0
+        if self.direction == 1:
+            self.image = self.images_caindo_right[self.index]
+        if self.direction == -1:
+            self.image = self.images_caindo_left[self.index]
+
+        # Adicionar Animações
+        if self.counter > caindo_cooldown:
+            self.counter = 0
+            self.index += 1
+            if self.index >= len(self.images_caindo_right):
+                self.index = 0
+            if self.direction == 1:
+                self.image = self.images_caindo_right[self.index]
+            if self.direction == -1:
+                self.image = self.images_caindo_left[self.index]
+
+    def update(self):
+        dx = 0
+        dy = 0
+
+
+        # Movimento Player
+        key = pygame.key.get_pressed()
+        if key[pygame.K_a] == False and key[pygame.K_d] == False and key[pygame.K_RIGHT] == False and key[
+            pygame.K_LEFT] == False and key[pygame.K_SPACE] == False :
+            self.Parada(dx)
+
+        if key[pygame.K_a] == True or key[pygame.K_d] == True or key[pygame.K_RIGHT] == True or key[
+        pygame.K_LEFT] == True and key[pygame.K_SPACE] == False:
+            self.Correndo(dx)
+
+        if key[pygame.K_SPACE] and self.jumped == False:
+            self.vel_y = -20
+            self.Pulando()
+            self.jumped = True
+
+        if key[pygame.K_SPACE] and self.jumped == False:
+            self.vel_y = -20
+            self.Pulando()
+            self.jumped = True
+
+        if key[pygame.K_SPACE] == False:
+            self.jumped = False
+
+
+
 
         #Adicionar Gravidade
         self.vel_y +=1
@@ -207,9 +327,11 @@ class Player():
             self.rect.bottom = janela_altura
             dy = 0
 
+
         #Desenha player na tela
         janela.blit(self.image,self.rect)
-        #pygame.draw.rect(janela, (255,255,255), self.rect, 2)
+        pygame.draw.rect(janela, (255,255,255), self.rect, 2)
+        pygame.draw.rect(janela, (255, 255, 255), self.rect, 2)
 
 class World():
     def __init__(self,data):
@@ -249,7 +371,7 @@ class World():
                     tile = (img,img_rect)
                     self.tile_list.append(tile)
                 if tile == 4:
-                    olho_voador = Enemy(col_count * tile_size_largura, row_count * tile_size_altura)
+                    olho_voador = Enemy(col_count * tile_size_largura + scroll[0], row_count * tile_size_altura + scroll[1])
                     olhosvoadores_g.add(olho_voador)
                 col_count += 1
             row_count += 1
@@ -264,17 +386,18 @@ class Enemy(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.image.load("olhovoador.png")
         self.rect = self.image.get_rect()
-        self.rect.x = x + scroll[0]
+        self.rect.x = x
         self.rect.y = y
         self.move_direction = 5
         self.move_counter = 0
 
     def update(self):
-        self.rect.x += self.move_direction + scroll[0]
+        self.rect.x += self.move_direction
         self.move_counter += 1
         if abs(self.move_counter) > 10:
             self.move_direction *= -1
             self.move_counter *= -1
+        janela.blit(self.image, self.rect)
 
 world_data = [
 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,],
@@ -301,7 +424,7 @@ game_states = GameStage()
 #Game Loop
 run = True
 while run:
-
+    clock.tick(fps)
     game_states.controla_Fase()
     pygame.display.update()
 
